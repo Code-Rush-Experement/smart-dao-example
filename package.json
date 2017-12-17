@@ -2,7 +2,37 @@
   "name": "smart-dao-example",
   "version": "0.1.0",
   "private": true,
-  "dependencies": {
+  "dependencies": {},
+  "scripts": {
+    "start": "node scripts/start.js",
+    "start:serve:contracts": "serve --port 3001 --cors build/contracts",
+    "start:serve:build": "serve build",
+    "build": "npm run eth:compile && node scripts/build.js",
+    "test": "node scripts/test.js --env=jsdom",
+    "eth:compile": "truffle compile",
+    "eth:migrate": "truffle migrate",
+    "eth:develop": "truffle develop",
+    "eth:test": "truffle test"
+  },
+  "proxy": {
+    "/contracts": {
+      "target": "http://localhost:3001",
+      "pathRewrite": {
+        "^/contracts": "/"
+      }
+    }
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "cpx": "^1.5.0",
+    "express": "^4.16.2",
+    "readline-sync": "^1.4.7",
+    "serve": "^6.4.1",
+    "truffle": "^4.0.3",
+    "truffle-contract": "^1.1.8",
+    "truffle-solidity-loader": "0.0.8",
+    "web3": "^1.0.0-beta.26",
+    "zeppelin-solidity": "^1.4.0",
     "autoprefixer": "7.1.6",
     "babel-core": "6.26.0",
     "babel-eslint": "7.2.3",
@@ -41,40 +71,6 @@
     "webpack-dev-server": "2.9.4",
     "webpack-manifest-plugin": "1.3.2",
     "whatwg-fetch": "2.0.3"
-  },
-  "scripts": {
-    "start": "node scripts/start.js",
-    "start:serve:contracts": "serve --port 3001 --cors build/contracts",
-    "start:serve:build": "serve build",
-    "build": "npm run eth:compile && node scripts/build.js",
-    "test": "node scripts/test.js --env=jsdom",
-    "eth:compile": "truffle compile && npm run etc:copy:contracts",
-    "eth:migrate": "truffle migrate",
-    "eth:develop": "truffle develop",
-    "eth:test": "truffle test",
-    "eth:watch:contracts": "truffle complie && npm run etc:autocopy:contracts",
-    "etc:autocopy:contracts": "cpx -w build/contracts/*.json src/client-side-generated/contracts",
-    "etc:copy:contracts": "cpx build/contracts/*.json src/client-side-generated/contracts"
-  },
-  "proxy": {
-    "/contracts": {
-      "target": "http://localhost:3001",
-      "pathRewrite": {
-        "^/contracts": "/"
-      }
-    }
-  },
-  "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "cpx": "^1.5.0",
-    "express": "^4.16.2",
-    "readline-sync": "^1.4.7",
-    "serve": "^6.4.1",
-    "truffle": "^4.0.3",
-    "truffle-contract": "^1.1.8",
-    "truffle-solidity-loader": "0.0.8",
-    "web3": "^1.0.0-beta.26",
-    "zeppelin-solidity": "^1.4.0"
   },
   "jest": {
     "collectCoverageFrom": [

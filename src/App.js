@@ -1,9 +1,10 @@
 import React, {Component} from 'react';
 import logo from './logo.svg';
 import './App.css';
-import SimpleStorageContract from './client-side-generated/contracts/SimpleStorage.json'
-import TopicFactoryContract from './client-side-generated/contracts/TopicFactory.json'
-import TopicContract from './client-side-generated/contracts/Topic.json'
+
+import TopicContract from 'contracts/Topic.sol';
+import TopicFactoryContract from 'contracts/TopicFactory.sol';
+
 import getWeb3 from './utils/getWeb3'
 import nameUtils from './utils/name-utils';
 
@@ -35,54 +36,61 @@ class App extends Component {
 
 
     async instantiateContract() {
+
+        TopicFactoryContract.setProvider(this.web.currentProvider);
+
         /*
          * SMART CONTRACT EXAMPLE
          *
          * Normally these functions would be called in the context of a
          * state management library, but for convenience I've placed them here.
          */
-        const contract = require('truffle-contract');
-        const simpleStorage = contract(SimpleStorageContract);
-        simpleStorage.setProvider(this.web3.currentProvider);
-
-        const topicFactory = contract(TopicFactoryContract);
-        topicFactory.setProvider(this.web3.currentProvider);
-
-        const topic = contract(TopicContract);
-        console.log(topic);
-        topic.setProvider(this.web3.currentProvider);
-
-        this.topic = topic;
-
-        // Declaring this for later so we can chain functions on SimpleStorage.
-        //var simpleStorageInstance;
-        //var topicFactoryInstance;
-        const instance = await topicFactory.deployed();
-        this.topicFactoryInstance = instance;
-        await this.refreshTopics();
+        // const contract = require('truffle-contract');
+        // const simpleStorage = contract(SimpleStorageContract);
+        // simpleStorage.setProvider(this.web3.currentProvider);
+        //
+        // const topicFactory = contract(TopicFactoryContract);
+        // topicFactory.setProvider(this.web3.currentProvider);
+        //
+        // const topic = contract(TopicContract);
+        // console.log(topic);
+        // topic.setProvider(this.web3.currentProvider);
+        //
+        // this.topic = topic;
+        //
+        // // Declaring this for later so we can chain functions on SimpleStorage.
+        // //var simpleStorageInstance;
+        // //var topicFactoryInstance;
+        // const instance = await topicFactory.deployed();
+        // this.topicFactoryInstance = instance;
+        // await this.refreshTopics();
     }
 
-    refreshTopics() {
+    async refreshTopics() {
         const toAscii = (hex) => {
             return nameUtils.toAsciiTrimmed(hex);
         };
 
-        var topicAddresses;
-        return this.topicFactoryInstance.contracts().then(items => {
-            topicAddresses = items;
-            console.log(topicAddresses);
-        }).then(() => {
-            return Promise.all(topicAddresses.map((address) => this.topic.at(address)))
-                .then((items) => items.map(_ => _.name())).then((items) => Promise.all(items));
-        }).then((names) => {
-            this.setState({
-                topics: names.map((name, i) => {
-                    return {name: toAscii(name), address: topicAddresses[i]}
-                })
-            });
-        }).then(console.log).catch((err) => {
-            this.showError(err);
-        });
+        const topicContractMeta = await TopicContract.deplyed();
+        const topicAddresses = await topicContractMeta.contracts();
+        console.log(topicAddresses);
+
+        // var topicAddresses;
+        // return this.topicFactoryInstance.contracts().then(items => {
+        //     topicAddresses = items;
+        //     console.log(topicAddresses);
+        // }).then(() => {
+        //     return Promise.all(topicAddresses.map((address) => this.topic.at(address)))
+        //         .then((items) => items.map(_ => _.name())).then((items) => Promise.all(items));
+        // }).then((names) => {
+        //     this.setState({
+        //         topics: names.map((name, i) => {
+        //             return {name: toAscii(name), address: topicAddresses[i]}
+        //         })
+        //     });
+        // }).then(console.log).catch((err) => {
+        //     this.showError(err);
+        // });
     }
 
     render() {
