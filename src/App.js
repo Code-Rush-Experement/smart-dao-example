@@ -6,12 +6,13 @@ import TopicContractMeta from 'contracts/Topic.json';
 import getWeb3 from './utils/getWeb3';
 import nameUtils from './utils/name-utils';
 import contract from 'truffle-contract';
+import _ from 'lodash';
 
 class App extends Component {
 
     constructor() {
         super();
-        this.state = { errors:[] };
+        this.state = { errors:[], topicContracts: [], topics: [] };
     }
     async componentWillMount() {
         // Get network provider and web3 instance.
@@ -53,6 +54,19 @@ class App extends Component {
 
         this.TopicContract = TopicContract;
         this.TopicFactoryContract = TopicFactoryContract;
+        this.topicFactoryContractInstance = (await this.TopicFactoryContract.deployed());
+
+        console.log(this.topicFactoryContractInstance.TopicCreated());
+        this.topicFactoryContractInstance.TopicCreated().watch((error, result) => {
+            console.log(arguments);
+
+            if (_.isError(error)) {
+                this.showError(error);
+            }
+
+            this.pushTopic(result.args);
+        });
+
         return this.refreshTopics();
     }
 
@@ -74,19 +88,24 @@ class App extends Component {
         });
     }
 
+    pushTopic({id, name}) {
+        this.setState({
+            topicContracts: [...this.state.topicContracts, id],
+            topics: [...this.state.topics, { name: nameUtils.toAsciiTrimmed(name), address: id }]
+        });
+    }
+
     onNewTopicChanged(e) {
         this.setState({ newTopicName: e.target.value });
     }
 
     async submitNewTopic() {
-        const contractInstance = (await this.TopicFactoryContract.deployed());
         try {
             this.setState({ isSubmittingTopic: true });
             const from = this.state.accounts[0];
             const name = this.state.newTopicName;
 
-            await contractInstance.createContract(name, {from});
-            await this.refreshTopics();
+            await this.topicFactoryContractInstance.createContract(name, {from});
         } catch (e) {
             this.showError(e);
         } finally {

@@ -7,6 +7,8 @@ contract TopicFactory {
     bytes32[] names;
     address[] newContracts;
 
+    event TopicCreated(address id, bytes32 name, address sender);
+
     function TopicFactory() public {
 
     }
@@ -14,6 +16,7 @@ contract TopicFactory {
     function createContract (bytes32 name) public {
         address newContract = new Topic(name);
         newContracts.push(newContract);
+        TopicCreated(newContract, name, msg.sender);
     }
 
     function contracts() public constant returns (address[]) {
