@@ -1,8 +1,8 @@
 import React, {Component} from 'react';
 import logo from './logo.svg';
 import './App.css';
-import TopicFactoryContract from 'contracts/TopicFactory';
-import TopicContract from 'contracts/Topic.json';
+import TopicFactoryMeta from 'contracts/TopicFactory';
+import TopicContractMeta from 'contracts/Topic.json';
 import getWeb3 from './utils/getWeb3';
 import nameUtils from './utils/name-utils';
 import contract from 'truffle-contract';
@@ -16,10 +16,12 @@ class App extends Component {
     async componentWillMount() {
         // Get network provider and web3 instance.
         // See utils/getWeb3 for more info.
-
         try {
             this.web3 = (await getWeb3).web3;
-            console.log(this.web3);
+
+            const accounts = await this.web3.eth.getAccounts();
+            this.setState({accounts: accounts});
+
             await this.instantiateContract();
         } catch (error) {
             this.showError(error);
@@ -42,47 +44,59 @@ class App extends Component {
          * state management library, but for convenience I've placed them here.
          */
 
-        const topicFactory = contract(TopicFactoryContract);
-        topicFactory.setProvider(this.web3.currentProvider);
+        const TopicFactoryContract = contract(TopicFactoryMeta);
+        TopicFactoryContract.setProvider(this.web3.currentProvider);
 
-        const topic = contract(TopicContract);
-        topic.setProvider(this.web3.currentProvider);
 
-        this.topic = topic;
+        const TopicContract = contract(TopicContractMeta);
+        TopicContract.setProvider(this.web3.currentProvider);
 
-        // Declaring this for later so we can chain functions on SimpleStorage.
-        //var simpleStorageInstance;
-        //var topicFactoryInstance;
-        const instance = await topicFactory.deployed();
-        this.topicFactoryInstance = instance;
-        await this.refreshTopics();
+        this.TopicContract = TopicContract;
+        this.TopicFactoryContract = TopicFactoryContract;
+        return this.refreshTopics();
     }
 
-    refreshTopics() {
+    async refreshTopics() {
         const toAscii = (hex) => {
             return nameUtils.toAsciiTrimmed(hex);
         };
 
-        var topicAddresses;
-        return this.topicFactoryInstance.contracts().then(items => {
-            topicAddresses = items;
-            console.log(topicAddresses);
-        }).then(() => {
-            return Promise.all(topicAddresses.map((address) => this.topic.at(address)))
-                .then((items) => items.map(_ => _.name())).then((items) => Promise.all(items));
-        }).then((names) => {
-            this.setState({
-                topics: names.map((name, i) => {
-                    return {name: toAscii(name), address: topicAddresses[i]}
-                })
-            });
-        }).then(console.log).catch((err) => {
-            this.showError(err);
+        const topicFactory = await this.TopicFactoryContract.deployed();
+        const topicAddresses = await topicFactory.contracts();
+        const topicContracts = await Promise.all(topicAddresses.map((address) => this.TopicContract.at(address)));
+        const topicNames = await Promise.all(topicContracts.map(_ => _.name()));
+
+        this.setState({
+            topicContracts: topicContracts,
+            topics: topicNames.map((name, i) => {
+                return {name: toAscii(name), address: topicAddresses[i]}
+            })
         });
     }
 
+    onNewTopicChanged(value) {
+        this.setState({ newTopicName: value });
+    }
+
+    async submitNewTopic() {
+        const contractInstance = (await this.TopicFactoryContract.deployed());
+        try {
+            this.setState({ isSubmittingTopic: true });
+
+            const fromAccount = this.state.accounts[0];
+            console.log(fromAccount);
+            await contractInstance.createContract(this.state.newTopic, {from: fromAccount});
+            await this.refreshTopics();
+        } catch (e) {
+            this.showError(e);
+        } finally {
+            this.setState({ isSubmittingTopic: true });
+        }
+
+    }
+
     render() {
-        const {errors} = this.state || {};
+        const {errors, accounts, topics, isSubmittingTopic, newTopicName} = this.state;
         return (
             <div className="App">
                 <header className="App-header">
@@ -93,6 +107,23 @@ class App extends Component {
                     To get started, edit <code>src/App.js</code> and save to reload.
                 </p>
                 {errors && errors.map(item => <li className={'error'}>{item.message}</li>)}
+
+                accounts:
+                <ul>
+                    {accounts && accounts.map(account =>
+                        <li>{account}</li>
+                    )}
+                </ul>
+
+                topics:
+                <input value={newTopicName} onChange={({target}) => this.onNewTopicChanged(target.value)} />
+                <button disabled={!isSubmittingTopic && !newTopicName} onClick={() => this.submitNewTopic()}>add</button>
+                <ul>
+                    {topics && topics.map(({name, address}) =>
+                        <li>{name} / {address}</li>
+                    )}
+                </ul>
+
             </div>
         );
     }
