@@ -1,11 +1,11 @@
 import React, {Component} from 'react';
 import logo from './logo.svg';
 import './App.css';
-import SimpleStorageContract from './client-side-generated/contracts/SimpleStorage.json'
-import TopicFactoryContract from './client-side-generated/contracts/TopicFactory.json'
-import TopicContract from './client-side-generated/contracts/Topic.json'
-import getWeb3 from './utils/getWeb3'
+import TopicFactoryContract from 'contracts/TopicFactory';
+import TopicContract from 'contracts/Topic.json';
+import getWeb3 from './utils/getWeb3';
 import nameUtils from './utils/name-utils';
+import contract from 'truffle-contract';
 
 class App extends Component {
 
@@ -41,15 +41,11 @@ class App extends Component {
          * Normally these functions would be called in the context of a
          * state management library, but for convenience I've placed them here.
          */
-        const contract = require('truffle-contract');
-        const simpleStorage = contract(SimpleStorageContract);
-        simpleStorage.setProvider(this.web3.currentProvider);
 
         const topicFactory = contract(TopicFactoryContract);
         topicFactory.setProvider(this.web3.currentProvider);
 
         const topic = contract(TopicContract);
-        console.log(topic);
         topic.setProvider(this.web3.currentProvider);
 
         this.topic = topic;
