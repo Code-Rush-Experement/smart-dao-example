@@ -1,0 +1,48 @@
+{
+  "name": "smart-dao-example",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0",
+    "react-scripts": "1.0.17"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "start:serve:contracts": "serve --port 3001 --cors build/contracts",
+    "start:serve:build": "serve build",
+    "build": "npm run eth:compile && react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject",
+
+    "eth:compile": "truffle compile && npm run etc:copy:contracts",
+    "eth:migrate": "truffle migrate",
+    "eth:develop": "truffle develop",
+    "eth:test": "truffle test",
+
+    "eth:watch:contracts": "truffle complie && npm run etc:autocopy:contracts",
+    "etc:autocopy:contracts": "cpx -w build/contracts/*.json src/client-side-generated/contracts",
+    "etc:copy:contracts": "cpx build/contracts/*.json src/client-side-generated/contracts"
+
+  },
+  "proxy": {
+    "/contracts": {
+      "target": "http://localhost:3001",
+      "pathRewrite": {
+        "^/contracts": "/"
+      }
+    }
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "cpx": "^1.5.0",
+    "express": "^4.16.2",
+    "readline-sync": "^1.4.7",
+    "serve": "^6.4.1",
+    "truffle": "^4.0.3",
+    "truffle-contract": "^1.1.8",
+    "truffle-solidity-loader": "0.0.8",
+    "web3": "^1.0.0-beta.26",
+    "zeppelin-solidity": "^1.4.0"
+  }
+}
