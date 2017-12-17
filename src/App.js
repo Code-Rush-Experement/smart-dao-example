@@ -74,18 +74,18 @@ class App extends Component {
         });
     }
 
-    onNewTopicChanged(value) {
-        this.setState({ newTopicName: value });
+    onNewTopicChanged(e) {
+        this.setState({ newTopicName: e.target.value });
     }
 
     async submitNewTopic() {
         const contractInstance = (await this.TopicFactoryContract.deployed());
         try {
             this.setState({ isSubmittingTopic: true });
+            const from = this.state.accounts[0];
+            const name = this.state.newTopicName;
 
-            const fromAccount = this.state.accounts[0];
-            console.log(fromAccount);
-            await contractInstance.createContract(this.state.newTopic, {from: fromAccount});
+            await contractInstance.createContract(name, {from});
             await this.refreshTopics();
         } catch (e) {
             this.showError(e);
@@ -116,7 +116,7 @@ class App extends Component {
                 </ul>
 
                 topics:
-                <input value={newTopicName} onChange={({target}) => this.onNewTopicChanged(target.value)} />
+                <input value={newTopicName} onChange={(e) => this.onNewTopicChanged(e)} />
                 <button disabled={!isSubmittingTopic && !newTopicName} onClick={() => this.submitNewTopic()}>add</button>
                 <ul>
                     {topics && topics.map(({name, address}) =>
