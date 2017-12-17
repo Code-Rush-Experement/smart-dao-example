@@ -7,7 +7,6 @@ Ethereum Configuration
 1. You should configure your networks in ...
 
 Locally with webpack hot reload
-1. `npm run start:serve:contracts`
 1. `npm run start`
 
 To Serve Static on the "prod" env.
