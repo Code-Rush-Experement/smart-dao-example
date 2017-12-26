@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import logo from './logo.svg';
 import './App.css';
 import TopicFactoryMeta from 'contracts/TopicFactory';
-import TopicContractMeta from 'contracts/Topic.json';
+import TopicContractMeta from 'contracts/Topic';
 import getWeb3 from './utils/getWeb3';
 import nameUtils from './utils/name-utils';
 import contract from 'truffle-contract';

@@ -10,7 +10,9 @@ module.exports = function (deployer, network, addresses) {
     var password = process.env.ACCOUNT_PASSWORD;
     console.log('>> from ' + config.from);
     console.log('>> password in env: ' + !!password);
-    if (!!password && network.from) {
+    var needManualInput = !password && config.from;
+    console.log('>> password manually: ' + needManualInput);
+    if (needManualInput) {
         password = readlineSync.question('Enter eth account password: ', { hideEchoBack: true });
     }
     console.log('>> password from console: ' + !!password);
